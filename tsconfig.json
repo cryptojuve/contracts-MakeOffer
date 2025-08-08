@@ -1,10 +1,16 @@
 {
   // see https://www.typescriptlang.org/tsconfig to better understand tsconfigs
-  "include": ["typechain", "./scripts", "./test", "./utils"],
-  "files": ["./hardhat.config.ts"],
+  "include": [
+    "typechain",
+    "./scripts",
+    "./test",
+    "./utils"
+  ],
   "compilerOptions": {
     "module": "esnext",
-    "lib": ["esnext"],
+    "lib": [
+      "esnext"
+    ],
     "importHelpers": true,
     // output .d.ts declaration files for consumers
     "declaration": true,

@@ -1,5 +1,5 @@
 [profile.default]
-solc-version = "0.8.23"
+solc-version = "0.8.19"
 #auto_detect_solc = false
 cache = true
 evm_version = 'london'
@@ -28,26 +28,6 @@ libs = ['lib']
 optimizer = true
 optimizer_runs = 20
 out = 'artifacts_forge'
-remappings = [
-  '@uniswap/v3-core/contracts=lib/v3-core/contracts',
-  '@uniswap/v3-periphery/contracts=lib/v3-periphery/contracts',
-  '@uniswap/swap-router-contracts/contracts=lib/swap-router-contracts/contracts',
-  '@chainlink/=lib/chainlink/',
-  '@openzeppelin/contracts=lib/openzeppelin-contracts/contracts',
-  '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/',
-  '@ds-test=lib/ds-test/src/',
-  '@std=lib/forge-std/src/',
-  'contracts/=contracts/',
-  'erc721a-upgradeable/=lib/ERC721A-Upgradeable/',
-  'erc721a/=lib/ERC721A/',
-  '@limitbreak/creator-token-standards/=lib/creator-token-standards/src/',
-  '@thirdweb-dev/dynamic-contracts/=lib/dynamic-contracts/',
-  'lib/sstore2=lib/dynamic-contracts/lib/sstore2/',
-  'solady/=lib/solady/',
-  '@seaport/=lib/seaport/contracts/',
-  'seaport-types/=lib/seaport/lib/seaport-types/',
-  'seaport-core/=lib/seaport/lib/seaport-core/'
-]
 fs_permissions = [{ access = "read-write", path = "./src/test/smart-wallet/utils"}]
 src = 'contracts'
 test = 'src/test'
