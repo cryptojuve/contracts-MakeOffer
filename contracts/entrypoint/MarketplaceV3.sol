@@ -35,10 +35,11 @@ import "lib/contracts/contracts/extension/upgradeable/PermissionsEnumerable.sol"
 import "lib/contracts/contracts/extension/upgradeable/init/ReentrancyGuardInit.sol";
 import "lib/contracts/contracts/extension/upgradeable/ERC2771ContextUpgradeable.sol";
 import {RoyaltyPaymentsLogic} from "lib/contracts/contracts/extension/upgradeable/RoyaltyPayments.sol";
-
+import "../IMarketplace.sol";
 /**
  * @author  thirdweb.com
  */
+
 contract MarketplaceOffers is
     Initializable,
     Multicall,
@@ -51,7 +52,9 @@ contract MarketplaceOffers is
     RoyaltyPaymentsLogic,
     ERC721Holder,
     ERC1155Holder,
-    ERC165
+    ERC165,
+    IDirectListings,
+    IOffers
 {
     /// @dev Only EXTENSION_ROLE holders can perform upgrades.
     bytes32 private constant EXTENSION_ROLE = keccak256("EXTENSION_ROLE");

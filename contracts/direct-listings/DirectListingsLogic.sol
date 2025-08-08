@@ -3,26 +3,13 @@ pragma solidity ^0.8.19;
 
 /// @author thirdweb
 
+import "./../entrypoint/MarketplaceV3.sol";
 import "./DirectListingsStorage.sol";
-
-// ====== External imports ======
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "lib/contracts/contracts/eip/interface/IERC721.sol";
-import "lib/contracts/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-
-// ====== Internal imports ======
-
-import {IPlatformFee} from "lib/contracts/contracts/extension/interface/IPlatformFee.sol";
-import "lib/contracts/contracts/extension/upgradeable/ERC2771ContextConsumer.sol";
-import "lib/contracts/contracts/extension/upgradeable/ReentrancyGuard.sol";
-import "lib/contracts/contracts/extension/upgradeable/PermissionsEnumerable.sol";
-import {RoyaltyPaymentsLogic} from "lib/contracts/contracts/extension/upgradeable/RoyaltyPayments.sol";
-import {CurrencyTransferLib} from "lib/contracts/contracts/lib/CurrencyTransferLib.sol";
 
 /**
  * @author  thirdweb.com
  */
-contract DirectListingsLogic is IDirectListings, ReentrancyGuard, ERC2771ContextConsumer {
+contract DirectListingsLogic is IDirectListings, ReentrancyGuard {
     /*///////////////////////////////////////////////////////////////
                         Constants / Immutables
     //////////////////////////////////////////////////////////////*/
