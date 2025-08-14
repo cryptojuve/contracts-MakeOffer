@@ -14,7 +14,7 @@ import "lib/creator-token-standards/lib/openzeppelin-contracts/contracts/token/E
 import "lib/creator-token-standards/lib/openzeppelin-contracts/contracts/interfaces/IERC2981.sol";
 
 // ====== Internal imports ======
-
+import "../IMarketplace.sol";
 import {IPlatformFee} from "lib/contracts/contracts/extension/interface/IPlatformFee.sol";
 import "lib/contracts/contracts/extension/upgradeable/ERC2771ContextConsumer.sol";
 import "lib/contracts/contracts/extension/upgradeable/ReentrancyGuard.sol";
@@ -55,7 +55,7 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
 
     /// @dev Checks whether an auction exists.
     modifier onlyExistingOffer(uint256 _offerId) {
-        require(_offersStorage().offers[_offerId].status == IOffers.Status.CREATED, "Marketplace: invalid offer.");
+        require(_offersStorage().offers[_offerId].status == IOffers.OffersStatus.CREATED, "Marketplace: invalid offer.");
         _;
     }
 
@@ -71,12 +71,13 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
 
     function makeOffer(OfferParams memory _params)
         external
+        payable
         onlyAssetRole(_params.assetContract)
         returns (uint256 _offerId)
     {
         _offerId = _getNextOfferId();
         address _offeror = _msgSender();
-        TokenType _tokenType = _getTokenType(_params.assetContract);
+        IOffers.OffersTokenType _tokenType = _getTokenType(_params.assetContract);
 
         _validateNewOffer(_params, _tokenType);
 
@@ -90,7 +91,7 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
             currency: _params.currency,
             totalPrice: _params.totalPrice,
             expirationTimestamp: _params.expirationTimestamp,
-            status: IOffers.Status.CREATED
+            status: IOffers.OffersStatus.CREATED
         });
 
         _offersStorage().offers[_offerId] = _offer;
@@ -99,7 +100,7 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
     }
 
     function cancelOffer(uint256 _offerId) external onlyExistingOffer(_offerId) onlyOfferor(_offerId) {
-        _offersStorage().offers[_offerId].status = IOffers.Status.CANCELLED;
+        _offersStorage().offers[_offerId].status = IOffers.OffersStatus.CANCELLED;
 
         emit CancelledOffer(_msgSender(), _offerId);
     }
@@ -122,7 +123,7 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
             _targetOffer.tokenType
         );
 
-        _offersStorage().offers[_offerId].status = IOffers.Status.COMPLETED;
+        _offersStorage().offers[_offerId].status = IOffers.OffersStatus.COMPLETED;
 
         _payout(_targetOffer.offeror, _msgSender(), _targetOffer.currency, _targetOffer.totalPrice, _targetOffer);
         _transferOfferTokens(_msgSender(), _targetOffer.offeror, _targetOffer.quantity, _targetOffer);
@@ -199,21 +200,21 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
     }
 
     /// @dev Returns the interface supported by a contract.
-    function _getTokenType(address _assetContract) internal view returns (TokenType tokenType) {
+    function _getTokenType(address _assetContract) internal view returns (IOffers.OffersTokenType tokenType) {
         if (IERC165(_assetContract).supportsInterface(type(IERC1155).interfaceId)) {
-            tokenType = TokenType.ERC1155;
+            tokenType = IOffers.OffersTokenType.ERC1155;
         } else if (IERC165(_assetContract).supportsInterface(type(IERC721).interfaceId)) {
-            tokenType = TokenType.ERC721;
+            tokenType = IOffers.OffersTokenType.ERC721;
         } else {
             revert("Marketplace: token must be ERC1155 or ERC721.");
         }
     }
 
     /// @dev Checks whether the auction creator owns and has approved marketplace to transfer auctioned tokens.
-    function _validateNewOffer(OfferParams memory _params, TokenType _tokenType) internal view {
+    function _validateNewOffer(OfferParams memory _params, IOffers.OffersTokenType _tokenType) internal view {
         require(_params.totalPrice > 0, "zero price.");
         require(_params.quantity > 0, "Marketplace: wanted zero tokens.");
-        require(_params.quantity == 1 || _tokenType == TokenType.ERC1155, "Marketplace: wanted invalid quantity.");
+        require(_params.quantity == 1 || _tokenType == IOffers.OffersTokenType.ERC1155, "Marketplace: wanted invalid quantity.");
         require(
             _params.expirationTimestamp + 60 minutes > block.timestamp, "Marketplace: invalid expiration timestamp."
         );
@@ -226,7 +227,7 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
 
     /// @dev Checks whether the offer exists, is active, and if the offeror has sufficient balance.
     function _validateExistingOffer(Offer memory _targetOffer) internal view returns (bool isValid) {
-        isValid = _targetOffer.expirationTimestamp > block.timestamp && _targetOffer.status == IOffers.Status.CREATED
+        isValid = _targetOffer.expirationTimestamp > block.timestamp && _targetOffer.status == IOffers.OffersStatus.CREATED
             && _validateERC20BalAndAllowance(_targetOffer.offeror, _targetOffer.currency, _targetOffer.totalPrice);
     }
 
@@ -236,15 +237,15 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
         address _assetContract,
         uint256 _tokenId,
         uint256 _quantity,
-        TokenType _tokenType
+        IOffers.OffersTokenType _tokenType
     ) internal view {
         address market = address(this);
         bool isValid;
 
-        if (_tokenType == TokenType.ERC1155) {
+        if (_tokenType == IOffers.OffersTokenType.ERC1155) {
             isValid = IERC1155(_assetContract).balanceOf(_tokenOwner, _tokenId) >= _quantity
                 && IERC1155(_assetContract).isApprovedForAll(_tokenOwner, market);
-        } else if (_tokenType == TokenType.ERC721) {
+        } else if (_tokenType == IOffers.OffersTokenType.ERC721) {
             isValid = IERC721(_assetContract).ownerOf(_tokenId) == _tokenOwner
                 && (
                     IERC721(_assetContract).getApproved(_tokenId) == market
@@ -267,9 +268,9 @@ contract OffersLogic is IOffers, ReentrancyGuard, ERC2771ContextConsumer {
 
     /// @dev Transfers tokens.
     function _transferOfferTokens(address _from, address _to, uint256 _quantity, Offer memory _offer) internal {
-        if (_offer.tokenType == TokenType.ERC1155) {
+        if (_offer.tokenType == IOffers.OffersTokenType.ERC1155) {
             IERC1155(_offer.assetContract).safeTransferFrom(_from, _to, _offer.tokenId, _quantity, "");
-        } else if (_offer.tokenType == TokenType.ERC721) {
+        } else if (_offer.tokenType == IOffers.OffersTokenType.ERC721) {
             IERC721(_offer.assetContract).safeTransferFrom(_from, _to, _offer.tokenId, "");
         }
     }

@@ -3,15 +3,6 @@ pragma solidity ^0.8.19;
 
 /// @author thirdweb
 
-//   $$\     $$\       $$\                 $$\                         $$\
-//   $$ |    $$ |      \__|                $$ |                        $$ |
-// $$$$$$\   $$$$$$$\  $$\  $$$$$$\   $$$$$$$ |$$\  $$\  $$\  $$$$$$\  $$$$$$$\
-// \_$$  _|  $$  __$$\ $$ |$$  __$$\ $$  __$$ |$$ | $$ | $$ |$$  __$$\ $$  __$$\
-//   $$ |    $$ |  $$ |$$ |$$ |  \__|$$ /  $$ |$$ | $$ | $$ |$$$$$$$$ |$$ |  $$ |
-//   $$ |$$\ $$ |  $$ |$$ |$$ |      $$ |  $$ |$$ | $$ | $$ |$$   ____|$$ |  $$ |
-//   \$$$$  |$$ |  $$ |$$ |$$ |      \$$$$$$$ |\$$$$$\$$$$  |\$$$$$$$\ $$$$$$$  |
-//    \____/ \__|  \__|\__|\__|       \_______| \_____\____/  \_______|\_______/
-
 // ====== External imports ======
 import "lib/creator-token-standards/lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "lib/creator-token-standards/lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
@@ -26,6 +17,7 @@ import {
 //  ==========  Internal imports    ==========
 import {BaseRouter, IRouter, IRouterState} from "lib/contracts/lib/dynamic-contracts/src/presets/BaseRouter.sol";
 import {ERC165} from "lib/contracts/contracts/eip/ERC165.sol";
+import {IExtension} from "lib/contracts/lib/dynamic-contracts/src/interface/IExtension.sol";
 
 import "lib/contracts/contracts/extension/Multicall.sol";
 import "lib/contracts/contracts/extension/upgradeable/Initializable.sol";
@@ -36,11 +28,12 @@ import "lib/contracts/contracts/extension/upgradeable/init/ReentrancyGuardInit.s
 import "lib/contracts/contracts/extension/upgradeable/ERC2771ContextUpgradeable.sol";
 import {RoyaltyPaymentsLogic} from "lib/contracts/contracts/extension/upgradeable/RoyaltyPayments.sol";
 import "../IMarketplace.sol";
+
 /**
  * @author  thirdweb.com
  */
 
-contract MarketplaceOffers is
+ contract MarketplaceExtensions is
     Initializable,
     Multicall,
     BaseRouter,
@@ -52,9 +45,7 @@ contract MarketplaceOffers is
     RoyaltyPaymentsLogic,
     ERC721Holder,
     ERC1155Holder,
-    ERC165,
-    IDirectListings,
-    IOffers
+    ERC165
 {
     /// @dev Only EXTENSION_ROLE holders can perform upgrades.
     bytes32 private constant EXTENSION_ROLE = keccak256("EXTENSION_ROLE");
@@ -65,8 +56,8 @@ contract MarketplaceOffers is
     /// @dev The address of the native token wrapper contract.
     address private immutable nativeTokenWrapper;
 
-    address public constant DEFAULT_FEE_RECIPIENT = 0x1Af20C6B23373350aD464700B5965CE4B0D2aD94;
-
+    address public constant DEFAULT_FEE_RECIPIENT = 0x3E5064AA3e0A17ba1C439AD532A73C6e0D01B6d0;
+    address public constant DEFAULT_ADMIN = 0x3E5064AA3e0A17ba1C439AD532A73C6e0D01B6d0;
     /*///////////////////////////////////////////////////////////////
                     Constructor + initializer logic
     //////////////////////////////////////////////////////////////*/
@@ -90,8 +81,6 @@ contract MarketplaceOffers is
         // accept HYPE et WHYPE via fallback
     }
 
-    address public constant DEFAUT_ADMIN = 0x3E5064AA3e0A17ba1C439AD532A73C6e0D01B6d0;
-
     /// @dev Initializes the contract, like a constructor.
 
     function initialize(
@@ -111,12 +100,12 @@ contract MarketplaceOffers is
         _setupContractURI(_contractURI);
         _setupPlatformFeeInfo(_platformFeeRecipient, _platformFeeBps);
 
-        _setupRole(DEFAULT_ADMIN_ROLE, DEFAUT_ADMIN);
-        _setupRole(EXTENSION_ROLE, DEFAUT_ADMIN);
+        _setupRole(DEFAULT_ADMIN_ROLE, DEFAULT_ADMIN);
+        _setupRole(EXTENSION_ROLE, DEFAULT_ADMIN);
         _setupRole(keccak256("LISTER_ROLE"), address(0));
         _setupRole(keccak256("ASSET_ROLE"), address(0));
 
-        _setupRole(EXTENSION_ROLE, DEFAUT_ADMIN);
+        _setupRole(EXTENSION_ROLE, DEFAULT_ADMIN);
         _setRoleAdmin(EXTENSION_ROLE, EXTENSION_ROLE);
     }
 

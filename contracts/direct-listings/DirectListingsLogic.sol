@@ -3,13 +3,22 @@ pragma solidity ^0.8.19;
 
 /// @author thirdweb
 
-import "./../entrypoint/MarketplaceV3.sol";
+// import "../entrypoint/MarketplaceV3.sol"; // Removed to avoid circular dependency
 import "./DirectListingsStorage.sol";
+import "../IMarketplace.sol";
+import "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import "lib/contracts/contracts/eip/interface/IERC721.sol";
+import "lib/contracts/contracts/eip/interface/IERC1155.sol";
+import "lib/contracts/contracts/eip/interface/IERC20.sol";
+import "lib/contracts/contracts/lib/CurrencyTransferLib.sol";
+import "lib/contracts/contracts/extension/upgradeable/Permissions.sol";
+import "lib/contracts/contracts/extension/interface/IPlatformFee.sol";
+import "lib/contracts/contracts/extension/upgradeable/RoyaltyPayments.sol";
 
 /**
  * @author  thirdweb.com
  */
-contract DirectListingsLogic is IDirectListings, ReentrancyGuard {
+contract DirectListingsLogic is IDirectListings, ReentrancyGuard, Permissions {
     /*///////////////////////////////////////////////////////////////
                         Constants / Immutables
     //////////////////////////////////////////////////////////////*/
@@ -378,27 +387,12 @@ contract DirectListingsLogic is IDirectListings, ReentrancyGuard {
                             Internal functions
     //////////////////////////////////////////////////////////////*/
 
-    /// @dev Returns the next listing Id.
-    function _getNextListingId() internal returns (uint256 id) {
-        id = _directListingsStorage().totalListings;
-        _directListingsStorage().totalListings += 1;
-    }
 
-    /// @dev Returns the interface supported by a contract.
-    function _getTokenType(address _assetContract) internal view returns (TokenType tokenType) {
-        if (IERC165(_assetContract).supportsInterface(type(IERC1155).interfaceId)) {
-            tokenType = TokenType.ERC1155;
-        } else if (IERC165(_assetContract).supportsInterface(type(IERC721).interfaceId)) {
-            tokenType = TokenType.ERC721;
-        } else {
-            revert("Marketplace: listed token must be ERC1155 or ERC721.");
-        }
-    }
 
     /// @dev Checks whether the listing creator owns and has approved marketplace to transfer listed tokens.
-    function _validateNewListing(ListingParameters memory _params, TokenType _tokenType) internal view {
+    function _validateNewListing(ListingParameters memory _params, IDirectListings.TokenType _tokenType) internal view {
         require(_params.quantity > 0, "Marketplace: listing zero quantity.");
-        require(_params.quantity == 1 || _tokenType == TokenType.ERC1155, "Marketplace: listing invalid quantity.");
+        require(_params.quantity == 1 || _tokenType == IDirectListings.TokenType.ERC1155, "Marketplace: listing invalid quantity.");
 
         require(
             _validateOwnershipAndApproval(
@@ -427,14 +421,14 @@ contract DirectListingsLogic is IDirectListings, ReentrancyGuard {
         address _assetContract,
         uint256 _tokenId,
         uint256 _quantity,
-        TokenType _tokenType
+        IDirectListings.TokenType _tokenType
     ) internal view returns (bool isValid) {
         address market = address(this);
 
-        if (_tokenType == TokenType.ERC1155) {
+        if (_tokenType == IDirectListings.TokenType.ERC1155) {
             isValid = IERC1155(_assetContract).balanceOf(_tokenOwner, _tokenId) >= _quantity
                 && IERC1155(_assetContract).isApprovedForAll(_tokenOwner, market);
-        } else if (_tokenType == TokenType.ERC721) {
+        } else if (_tokenType == IDirectListings.TokenType.ERC721) {
             address owner;
             address operator;
 
@@ -465,9 +459,9 @@ contract DirectListingsLogic is IDirectListings, ReentrancyGuard {
 
     /// @dev Transfers tokens listed for sale in a direct or auction listing.
     function _transferListingTokens(address _from, address _to, uint256 _quantity, Listing memory _listing) internal {
-        if (_listing.tokenType == TokenType.ERC1155) {
+        if (_listing.tokenType == IDirectListings.TokenType.ERC1155) {
             IERC1155(_listing.assetContract).safeTransferFrom(_from, _to, _listing.tokenId, _quantity, "");
-        } else if (_listing.tokenType == TokenType.ERC721) {
+        } else if (_listing.tokenType == IDirectListings.TokenType.ERC721) {
             IERC721(_listing.assetContract).safeTransferFrom(_from, _to, _listing.tokenId, "");
         }
     }
@@ -541,5 +535,28 @@ contract DirectListingsLogic is IDirectListings, ReentrancyGuard {
     /// @dev Returns the DirectListings storage.
     function _directListingsStorage() internal pure returns (DirectListingsStorage.Data storage data) {
         data = DirectListingsStorage.data();
+    }
+
+    /// @dev Returns the message sender.
+    function _msgSender() internal view override returns (address) {
+        return msg.sender;
+    }
+
+    /// @dev Returns the next listing ID.
+    function _getNextListingId() internal returns (uint256) {
+        DirectListingsStorage.Data storage data = _directListingsStorage();
+        data.totalListings += 1;
+        return data.totalListings;
+    }
+
+    /// @dev Determines the token type of the given asset contract.
+    function _getTokenType(address _assetContract) internal view returns (TokenType) {
+        if (IERC165(_assetContract).supportsInterface(type(IERC1155).interfaceId)) {
+            return TokenType.ERC1155;
+        } else if (IERC165(_assetContract).supportsInterface(type(IERC721).interfaceId)) {
+            return TokenType.ERC721;
+        } else {
+            revert("!TOKEN_TYPE");
+        }
     }
 }

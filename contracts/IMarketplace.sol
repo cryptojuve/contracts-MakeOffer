@@ -195,13 +195,13 @@ interface IDirectListings {
  *  The `Offers` extension smart contract lets you make and accept offers made for NFTs (ERC-721 or ERC-1155).
  */
 interface IOffers {
-    enum TokenType {
+    enum OffersTokenType {
         ERC721,
         ERC1155,
         ERC20
     }
 
-    enum Status {
+    enum OffersStatus {
         UNSET,
         CREATED,
         COMPLETED,
@@ -250,8 +250,8 @@ interface IOffers {
         address offeror;
         address assetContract;
         address currency;
-        TokenType tokenType;
-        Status status;
+        OffersTokenType tokenType;
+        OffersStatus status;
     }
 
     /// @dev Emitted when a new offer is created.
@@ -278,7 +278,7 @@ interface IOffers {
      *
      *  @return offerId The unique integer ID assigned to the offer.
      */
-    function makeOffer(OfferParams memory _params) external returns (uint256 offerId);
+    function makeOffer(OfferParams memory _params) external payable returns (uint256 offerId);
 
     /**
      *  @notice Cancel an offer.

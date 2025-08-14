@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 /// @author thirdweb
 
-import {IDirectListings} from "../IMarketplace.sol";
+import {IDirectListings} from "contracts/IMarketplace.sol";
 
 /**
  * @author  thirdweb.com
