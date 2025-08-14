@@ -64,8 +64,10 @@ forge test
 - **RPC** : https://999.rpc.thirdweb.com
 
 ## 📚 Documentation
-- **Troubleshooting Gas Limit** : `TROUBLESHOOTING-GAS-LIMIT.md`
-- **Migration OpenZeppelin** : Documentation complète de la migration
+- **📖 Documentation Complète** : `DOCUMENTATION-SMART-CONTRACTS.md` - Guide détaillé des 3 smart contracts
+- **📋 Résumé Technique** : `RESUME-TECHNIQUE-CONTRATS.md` - Vue d'ensemble rapide et technique
+- **🚨 Troubleshooting Gas Limit** : `TROUBLESHOOTING-GAS-LIMIT.md` - Guide de dépannage
+- **🔄 Migration OpenZeppelin** : Documentation complète de la migration
 
 ## 🔒 Sécurité
 - Contrats audités par OpenZeppelin
