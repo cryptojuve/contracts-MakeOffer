@@ -1,3 +1,0 @@
-[submodule "lib/engine"]
-	path = lib/engine
-	url = https://github.com/thirdweb-dev/engine

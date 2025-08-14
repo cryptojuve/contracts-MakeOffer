@@ -47,8 +47,6 @@ base-sepolia = "${BASE_SEPOLIA_RPC_URL}"
 [etherscan]
 hyperevm = { key = "${ETHERSCAN_API_KEY}" }
 hyperevm-testnet = { key = "${ETHERSCAN_API_KEY}" }
-base-mainnet = { key = "${ETHERSCAN_API_KEY}" }
-base-sepolia = { key = "${ETHERSCAN_API_KEY}" }
 
 # Configuration pour les tests sur HyperEVM
 [profile.hyperevm-test]
