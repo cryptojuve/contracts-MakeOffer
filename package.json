@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "deploy": "node deploy-optimized.js",
+    "link-extensions": "node link-extensions.js",
     "test-connection": "node test-connection.js",
     "build": "forge build",
     "test": "forge test"

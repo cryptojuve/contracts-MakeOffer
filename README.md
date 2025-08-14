@@ -38,7 +38,11 @@ HYPEREVM_RPC_URL=https://999.rpc.thirdweb.com
 
 ### Déploiement
 ```bash
+# 1. Déployer les contrats
 npm run deploy
+
+# 2. Lier les extensions à la marketplace
+npm run link-extensions
 ```
 
 ### Test de Connexion
